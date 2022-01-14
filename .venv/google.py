@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from openpyxl.drawing.image import Image
 
 #이번달 첫번째 날짜, 마지막 날짜 찾기 위함
 from datetime import datetime, timedelta
@@ -20,17 +21,16 @@ import  openpyxl  as  op
 import sys, os, win32com.client
 
 
-#이건 사용자가 입력할 수 있게? 아니면 고정 //여기서는 예시
-folder_path  = r"C:\001_Study\Autowork_auth\upload_file"
+#이건 사용자가 입력할 수 있게? 아니면 고정 
+upload_folder_path  = r"C:\RPA_Approval\Upload_file"
+image_path = r"C:\RPA_Approval\Image"
 
 #현재 월 받아오기
 now = datetime.today()
+input_year = str(now.year)
 input_month = str(now.month) 
 input_month_int = now.month #now.month int형 출력 확인
 
-
-#식권 영수증, 엑셀파일 두개니까
-file_names = ["1.txt", "2.txt"]
 
 #영수증 PDF와 파견출장정보 PDF 생성 Part
 
@@ -41,7 +41,7 @@ week_calc_2022 = [4,4,5,4,4,5,4,4,5,4,4,5]
 week_calc_2022[input_month_int-1]
 
 
-excel_path = r"C:\001_Study\Autowork_auth"
+excel_path = r"C:\RPA_Approval"
 wb = op.load_workbook(excel_path + "/sample.xlsx")
 
 
@@ -55,100 +55,44 @@ else:
 # 파견 정보 해당 월 입력
 ws_report["E1"].value = input_month + '월'
 
+#식권영수증 추가
+ws_receipt = wb['Receipt']
+
+img = Image(image_path + "/영수증.jpg")
+img.height = 650
+img.width = 325
+
+ws_receipt.add_image(img,"C6")
+
+
+#변경내용 엑셀 저장
 wb.save(excel_path + "/sample.xlsx")
 wb.close()
 
+
+#수정한 엑셀 파일 불러오기
 excel = win32com.client.Dispatch("Excel.Application")
 excel.Visible = False
 
+#불러온 수정된 엑셀파일을 PDF로 바꿔준다.
 wb_for_PDF = excel.Workbooks.Open(excel_path + "/sample.xlsx")
-wb_for_PDF.WorkSheets(temp_text).Select()
 
-wb_for_PDF.ActiveSheet.ExportAsFixedFormat(0, excel_path + "/sample.pdf")
+#해당 월의 시트 선택해서 수정
+wb_for_PDF.WorkSheets(temp_text).Select()
+wb_for_PDF.ActiveSheet.ExportAsFixedFormat(0, upload_folder_path + "/01_{}년_{}월_슈어소프트테크_파견_정보.pdf".format(input_year, input_month))
+
+wb_for_PDF.WorkSheets('Receipt').Select()
+wb_for_PDF.ActiveSheet.ExportAsFixedFormat(0, upload_folder_path + "/02_{}년_{}월_식권영수증.pdf".format(input_year, input_month))
+
 
 wb_for_PDF.Close()
 excel.Quit()
 
 
-# excel = win32com.client.Dispatch("Excel.Application")
-
-# wb_for_pdf = excel.Workbooks.Open(excel_path + "/sample.xlsx")
-
-# wb_for_pdf.Select()
-
-# ws.ActiveSheet.ExportAsFixedFormat(0,excel_path + "/sample.pdf")
-# wb.Close(False)
-# excel.Quit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# option = Options()
-# option.add_experimental_option("prefs",{
-#     "profile.default_content_setting_values.notifications" : 1
-# })
-
-driver = webdriver.Chrome(r"C:\001_Study\Autowork_auth\chromedriver.exe")
+#해당폴더에 chromedriver 놓기
+driver = webdriver.Chrome(r".\chromedriver.exe")
 driver.get("https://suresofttech.hanbiro.net/ngw/app/#/sign")
+driver.maximize_window()
 
 driver.implicitly_wait(3)
 driver.find_element(By.NAME, 'userid').send_keys("shlee")
@@ -212,7 +156,8 @@ print("이번달 마지막 날짜:", this_month_last.date())
 
 input_work_period = str(this_month_first.date()) + ' ~ ' + str(this_month_last.date())
 
-
+#기안자 이름 가져오기
+writter_name = driver.find_element(By.CSS_SELECTOR, "#write-form > div > div.field2.widget-container-col.visible > div > div.widget-body > div > div.approvalDraft.approvalPage.margin-bottom-10 > div > table > tbody > tr:nth-child(1) > td > table:nth-child(2) > tbody > tr > td > div.line-collapse > table > tbody > tr:nth-child(4) > td:nth-child(2)")
 
 #iframe 선택
 iframe = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/section[3]/div[2]/div[2]/div[2]/div/div[3]/div[3]/div/split-screen-view/list-view/div/div[2]/div/div/content-write/div/div/form/div/div[2]/div/div[2]/div/div[2]/div/table/tbody/tr[2]/td/table[2]/tbody/tr/td/div[2]/han-editor/div[3]/div[1]/div[2]/div[1]/iframe")
@@ -253,76 +198,50 @@ driver.find_element(By.XPATH, "//*[@id='attachment-list']/li/span[2]/a/i").click
 driver.find_element(By.CSS_SELECTOR, "body > div.modal.fade.modal-type1.small.in > div > div > div.modal-footer.center > button.btn.btn-sm.btn-info.no-border").click()
 
 
-
-
 #파일 추가 클릭
 driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/section[3]/div[2]/div[2]/div[2]/div/div[3]/div[3]/div/split-screen-view/list-view/div/div[2]/div/div/content-write/div/div/form/div/div[2]/div/div[2]/div/div[4]/div/div[1]/div/div[2]/div/div[1]/div/div[1]/div[1]/div[1]/div/span[1]").click()
 
 #첫번째 업로드 파일 경로 입력
-pyperclip.copy(folder_path)
+pyperclip.copy(upload_folder_path)
 
 for i in range(5):
     # pyautogui.click()
     pyautogui.sleep(1)
     pyautogui.press('tab')
 
+pyautogui.sleep(1)
 pyautogui.press('space')
 pyautogui.sleep(1)
 pyautogui.hotkey("ctrl","v")
 pyautogui.sleep(1)
 pyautogui.press("enter")
 
-for i in range(6):
+for i in range(4):           
     # pyautogui.click()
     pyautogui.sleep(1)
-    pyautogui.press('tab')
+    pyautogui.press("tab")    
 
-pyperclip.copy(file_names[0])
 pyautogui.sleep(1)
-pyautogui.hotkey("ctrl","v")
+pyautogui.press("space")
 pyautogui.sleep(1)
 pyautogui.press("enter")
 
-
-
 time.sleep(2)
-
 
 
 #파일 추가 클릭
 driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/section[3]/div[2]/div[2]/div[2]/div/div[3]/div[3]/div/split-screen-view/list-view/div/div[2]/div/div/content-write/div/div/form/div/div[2]/div/div[2]/div/div[4]/div/div[1]/div/div[2]/div/div[1]/div/div[1]/div[1]/div[1]/div/span[1]").click()
 
-# #첫번째 업로드 파일 경로 입력
-# pyperclip.copy(folder_path)
+#쉬프트 탭 두번 keydown
+for i in range(2):
+    # pyautogui.click()
+    pyautogui.sleep(1)
+    pyautogui.hotkey("shift","tab")
 
-# for i in range(5):
-#     # pyautogui.click()
-#     pyautogui.sleep(0.1)
-#     pyautogui.press('tab')
-
-# pyautogui.press('space')
-# pyautogui.sleep(0.1)
-# pyautogui.hotkey("ctrl","v")
-# pyautogui.sleep(0.1)
-# pyautogui.press("enter")
-
-#같은 폴더니까 바로 될거 같다
-# for i in range(6):
-#     # pyautogui.click()
-#     pyautogui.sleep(0.5)
-#     pyautogui.press('tab')
-
-pyperclip.copy(file_names[1])
 pyautogui.sleep(1)
-pyautogui.hotkey("ctrl","v")
+pyautogui.press("down")
 pyautogui.sleep(1)
 pyautogui.press("enter")
-
-
-
-# 다시 원래 핸들로
-# driver.switch_to.default_content() 
-
 
 
 print("===="*40)
