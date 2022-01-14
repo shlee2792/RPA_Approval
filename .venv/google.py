@@ -20,10 +20,19 @@ import  openpyxl  as  op
 #win32com.client 오류시 pip insatll --upgrade pywin32==225 다운그레이드
 import sys, os, win32com.client
 
+#폴더생성 함수 설정
+def makedirs(path): 
+   try: 
+        os.makedirs(path) 
+   except OSError: 
+       if not os.path.isdir(path): 
+           raise
+
 
 #이건 사용자가 입력할 수 있게? 아니면 고정 
 upload_folder_path  = r"C:\RPA_Approval\Upload_file"
 image_path = r"C:\RPA_Approval\Image"
+
 
 #현재 월 받아오기
 now = datetime.today()
@@ -243,6 +252,13 @@ pyautogui.press("down")
 pyautogui.sleep(1)
 pyautogui.press("enter")
 
+
+
+driver.find_element(By.CSS_SELECTOR, "#ngw\.approval\.container\  > split-screen-view > list-view > div > div.content-header > div:nth-child(3) > div > div:nth-child(3) > div > div.messagebar-item-right > button").click()
+time.sleep(1)
+driver.find_element(By.CSS_SELECTOR, "body > div.modal.fade.modal-type1.middle.in > div > div > div.modal-body > form > div:nth-child(1) > div > label > span").click()
+
+# driver.find_element(By.CSS_SELECTOR, "body > div.modal.fade.modal-type1.middle.in > div > div > div.modal-footer.center > button.btn.btn-sm.btn-info.no-border").click()
 
 print("===="*40)
 
