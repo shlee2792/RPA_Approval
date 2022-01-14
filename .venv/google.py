@@ -104,11 +104,18 @@ driver.get("https://suresofttech.hanbiro.net/ngw/app/#/sign")
 driver.maximize_window()
 
 driver.implicitly_wait(3)
+
+#id 입력
 driver.find_element(By.NAME, 'userid').send_keys("shlee")
 
 driver.switch_to.frame("iframeLoginPassword")
 
-driver.find_element(By.ID, 'p').send_keys('!dltkdgh86')
+#pwd 입력pooop
+#수정
+driver.find_element(By.ID, 'p').send_keys('')
+
+
+#enter 입력
 driver.find_element(By.ID, 'p').send_keys(Keys.RETURN)
 
 
@@ -192,9 +199,12 @@ driver.find_element(By.CSS_SELECTOR, "#tinymce > div:nth-child(1) > table:nth-ch
 # driver.find_element(By.CSS_SELECTOR,"#write-form > div > div.field2.widget-container-col.visible > div > div.widget-body > div > div.approvalDraft.approvalPage.margin-bottom-10 > div > table > tbody > tr:nth-child(2) > td > table.width-100.bordered-td.no-border-top.approval-activex-area > tbody > tr > td > div.col-sm-12.tab_area.padding-10 > han-editor > div.tox.tox-tinymce > div.tox-editor-container > div.tox-editor-header > div.tox-toolbar-overlord > div.tox-toolbar__primary > div:nth-child(2) > button:nth-child(1)").click()
 # driver.find_element(By.XPATH, "/html/body/div[7]/div/div/div/div/div[2]").click()
 
+
+
+
+
 #iframe 접속 종료
 driver.switch_to.default_content() 
-
 
 
 #첨부파일 삭제 클릭
